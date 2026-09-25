@@ -1,6 +1,6 @@
 [package]
 name = "coursera-dl-gui"
-version = "1.0.0"
+version = "1.0.1"
 description = "High-performance native Coursera course downloader & manager"
 authors = ["Coursera DL"]
 edition = "2021"
