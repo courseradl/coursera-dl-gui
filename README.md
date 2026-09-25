@@ -90,6 +90,12 @@ The compiled binaries will be output to `src-tauri/target/release/bundle/`.
 
 ---
 
+## Community
+
+Please read the [contributing guidelines](CONTRIBUTING.md) before submitting an issue or pull request. All community participation is governed by the project's [Code of Conduct](CODE_OF_CONDUCT.md). Report suspected vulnerabilities privately according to the [Security Policy](SECURITY.md).
+
+---
+
 ## ⚠️ Legal Disclaimer & Warranty Limitation
 This software is an unofficial, community-driven personal archival tool. It is strictly intended for personal, educational, offline use and the preservation of learning materials that the end-user already holds legitimate, active, and authorized access to view. The developer does not condone, encourage, or facilitate digital piracy, copyright circumvention, mass redistribution, or commercialization of data. Use of automated tools may violate the target platform's terms of service. 
 
