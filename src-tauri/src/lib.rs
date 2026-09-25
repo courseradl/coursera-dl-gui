@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::path::PathBuf;
 use tokio::sync::Mutex;
 use tauri::{AppHandle, State};
-use auth::{read_cookies, save_cookies, delete_cookies, UserProfile, AuthError};
+use auth::{read_cookies, save_cookies, delete_cookies, clear_webview_storage, UserProfile, AuthError};
 use client::{CourseraClient, EnrolledCourse};
 use downloader::{CourseManifest, build_course_manifest, download_single_task, resolve_path};
 
@@ -49,6 +49,179 @@ async fn logout(state: State<'_, AppState>) -> Result<(), AuthError> {
     *guard = None;
     Ok(())
 }
+
+#[tauri::command]
+async fn open_login_webview(app: AppHandle, state: State<'_, AppState>) -> Result<UserProfile, String> {
+    use tauri::{WebviewUrl, WebviewWindowBuilder, Manager, Listener, Emitter};
+
+    // Close any existing login window
+    if let Some(existing) = app.get_webview_window("coursera_login") {
+        let _ = existing.close();
+    }
+
+    clear_webview_storage();
+
+    let parsed_url = "https://www.coursera.org/?authMode=login"
+        .parse::<tauri::Url>()
+        .map_err(|e| e.to_string())?;
+    println!("[Webview Login] Launching Coursera login window...");
+
+    let login_window = WebviewWindowBuilder::new(
+        &app,
+        "coursera_login",
+        WebviewUrl::External(parsed_url)
+    )
+    .title("Login to Coursera — Coursera DL")
+    .devtools(true)
+    .incognito(true)
+    .inner_size(980.0, 720.0)
+    .min_inner_size(600.0, 500.0)
+    .center()
+    .resizable(true)
+    .build()
+    .map_err(|e| e.to_string())?;
+
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(10);
+
+    let app_handle_cancel = app.clone();
+    let win_cancel = login_window.clone();
+    let (cancel_tx, mut cancel_rx) = tokio::sync::mpsc::channel::<()>(1);
+    let unlisten_cancel = app.listen("coursera-cancel-login", move |_| {
+        println!("[Webview Login] Received cancellation signal");
+        let _ = win_cancel.hide();
+        let _ = win_cancel.close();
+        let _ = cancel_tx.try_send(());
+    });
+
+    // 2. Poll the webview's native cookie store. `CAUTH` is HttpOnly, so it is
+    // intentionally invisible to `document.cookie`; Tauri's cookie API is the
+    // reliable cross-platform source for it.
+    let tx_poll = tx.clone();
+    let win_poll = login_window.clone();
+    let poll_task = tokio::spawn(async move {
+        for attempt in 0..600 {
+            tokio::time::sleep(tokio::time::Duration::from_millis(600)).await;
+
+            // Do not use `cookies_for_url` here. On macOS, Wry compares the
+            // domain literally, so `.coursera.org` does not match
+            // `www.coursera.org` and the HttpOnly CAUTH cookie gets dropped.
+            match win_poll.cookies() {
+                Ok(cookies) => {
+                    let coursera_cookies = cookies
+                        .iter()
+                        .filter(|cookie| {
+                            cookie.domain().is_some_and(|domain| {
+                                let domain = domain.trim_start_matches('.');
+                                domain == "coursera.org" || domain.ends_with(".coursera.org")
+                            })
+                        })
+                        .collect::<Vec<_>>();
+
+                    if coursera_cookies.iter().any(|cookie| cookie.name() == "CAUTH") {
+                        let cookie_header = coursera_cookies
+                            .iter()
+                            .map(|cookie| format!("{}={}", cookie.name(), cookie.value()))
+                            .collect::<Vec<_>>()
+                            .join("; ");
+
+                        println!("[Webview Login] Captured {} Coursera cookies from the native cookie store", coursera_cookies.len());
+                        let _ = tx_poll.try_send(cookie_header);
+                        break;
+                    }
+
+                    if attempt == 0 || attempt % 20 == 0 {
+                        println!(
+                            "[Webview Login] Waiting for CAUTH ({} total cookies, {} Coursera cookies)...",
+                            cookies.len(),
+                            coursera_cookies.len()
+                        );
+                    }
+                }
+                Err(error) => {
+                    let error = error.to_string();
+                    println!("[Webview Login] Unable to read native cookie store: {error}");
+                    if error.contains("not found") || error.contains("closed") {
+                        break;
+                    }
+                }
+            }
+
+        }
+    });
+
+    let result: Result<UserProfile, String> = tokio::select! {
+        Some(raw_cookies) = rx.recv() => {
+            poll_task.abort();
+            println!("[Webview Login] Cookies captured! Hiding and closing webview immediately...");
+
+            // Instantly hide and close the webview window so the user is not left in the webview
+            let _ = login_window.hide();
+            let _ = login_window.close();
+            app_handle_cancel.unlisten(unlisten_cancel);
+
+            // Inform frontend that cookies were captured and verification is running
+            let _ = app.emit("coursera-verifying-details", ());
+
+            let final_cookies = raw_cookies;
+
+            println!("[Webview Login] Saving cookies to local disk...");
+            save_cookies(&final_cookies).map_err(|e| {
+                println!("[Webview Login] Error saving cookies: {}", e);
+                e.to_string()
+            })?;
+
+            println!("[Webview Login] Verifying details with Coursera...");
+            let mut client = CourseraClient::new(&final_cookies).map_err(|e| {
+                println!("[Webview Login] CourseraClient init error: {}", e);
+                e.to_string()
+            })?;
+
+            let profile = client.validate_and_get_profile().await.map_err(|e| {
+                println!("[Webview Login] Verification error: {}", e);
+                e.to_string()
+            })?;
+
+            println!("[Webview Login] Verification successful! User: {:?}", profile.name.as_deref().unwrap_or(&profile.user_id));
+
+            // Clear webview cookies/storage so session isn't stuck in webview
+            clear_webview_storage();
+
+            let mut guard = state.client.lock().await;
+            *guard = Some(client);
+
+            Ok(profile)
+        }
+        _ = cancel_rx.recv() => {
+            poll_task.abort();
+            app_handle_cancel.unlisten(unlisten_cancel);
+            Err("Coursera login was cancelled".to_string())
+        }
+        _ = tokio::time::sleep(tokio::time::Duration::from_secs(300)) => {
+            poll_task.abort();
+            println!("[Webview Login] Webview login timed out after 5 minutes");
+            let _ = login_window.hide();
+            let _ = login_window.close();
+            app_handle_cancel.unlisten(unlisten_cancel);
+            Err("Login timed out after 5 minutes".to_string())
+        }
+    };
+
+    result
+}
+
+#[tauri::command]
+async fn cancel_login_webview(app: AppHandle) -> Result<(), String> {
+    use tauri::{Manager, Emitter};
+    println!("[Webview Login] cancel_login_webview invoked");
+    let _ = app.emit("coursera-cancel-login", ());
+    if let Some(win) = app.get_webview_window("coursera_login") {
+        let _ = win.hide();
+        let _ = win.close();
+    }
+    clear_webview_storage();
+    Ok(())
+}
+
 
 #[tauri::command]
 async fn get_enrolled_courses(state: State<'_, AppState>) -> Result<Vec<EnrolledCourse>, String> {
@@ -334,6 +507,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             check_auth,
             login_with_cookies,
+            open_login_webview,
+            cancel_login_webview,
             logout,
             get_enrolled_courses,
             get_courses_download_status,

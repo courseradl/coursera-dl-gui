@@ -13,6 +13,7 @@ import {
   Check,
   ShieldAlert,
   FileVideo,
+  TriangleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -39,6 +40,7 @@ export function SettingsView() {
   const setDelayVideosOnly = useAppStore((s) => s.setDelayVideosOnly);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
   const resolutionOptions: {
     value: VideoResolution;
@@ -73,6 +75,7 @@ export function SettingsView() {
   const clearAllUserData = useAppStore((s) => s.clearAllUserData);
 
   const handleLogout = async () => {
+    setShowLogoutConfirmation(false);
     setIsLoggingOut(true);
     try {
       await invoke("logout");
@@ -86,6 +89,53 @@ export function SettingsView() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {showLogoutConfirmation && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowLogoutConfirmation(false);
+          }}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="logout-dialog-title"
+            aria-describedby="logout-dialog-description"
+            className="w-full max-w-sm space-y-5 rounded-xl border border-border/80 bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <TriangleAlert className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h2 id="logout-dialog-title" className="text-base font-semibold text-foreground">
+                  Sign out of Coursera?
+                </h2>
+                <p id="logout-dialog-description" className="text-xs leading-relaxed text-muted-foreground">
+                  You’ll need to authenticate again before browsing or downloading courses.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowLogoutConfirmation(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="button" variant="destructive" size="sm" onClick={handleLogout}>
+                <LogOut className="mr-1.5 h-3.5 w-3.5" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
           <SettingsIcon className="h-6 w-6 text-primary" />
@@ -345,12 +395,12 @@ export function SettingsView() {
             <Button
               variant="destructive"
               size="sm"
-              onClick={handleLogout}
+              onClick={() => setShowLogoutConfirmation(true)}
               disabled={isLoggingOut}
               className="h-8 gap-1.5 text-xs cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
-              Sign Out & Clear Cookies
+              Sign Out
             </Button>
           </div>
         </CardContent>
