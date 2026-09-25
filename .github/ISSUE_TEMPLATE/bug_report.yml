@@ -1,0 +1,116 @@
+name: Bug report
+description: Report a reproducible problem with Coursera DL
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Search existing issues first and never include Coursera cookies, credentials, personal data, or downloaded course content.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I am using the latest release or have confirmed the issue on the current `main` branch.
+          required: true
+        - label: I removed cookies, tokens, credentials, and personal information from this report.
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Coursera DL version
+      description: Enter the release version or commit hash.
+      placeholder: "1.0.1 or abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: Operating system version and architecture
+      placeholder: "macOS 15.6, Apple Silicon"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Coursera login
+        - Cookie login
+        - Course listing or enrollment
+        - Download preparation
+        - Active downloads
+        - Downloaded files or folders
+        - Settings
+        - Updates or installation
+        - User interface
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem description
+      description: Clearly describe what went wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste only sanitized logs. Do not include cookie values, tokens, email addresses, or downloaded content.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add sanitized screenshots or other useful details.
+
+  - type: checkboxes
+    id: authorized-use
+    attributes:
+      label: Authorized use
+      options:
+        - label: This report concerns content and an account I am authorized to access.
+          required: true
