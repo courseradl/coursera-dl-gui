@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/courseradl/coursera-dl-gui/security/policy
     about: Report security vulnerabilities privately by following the Security Policy. Do not open a public issue.
   - name: Questions and support
-    url: https://github.com/courseradl/coursera-dl-gui/discussions
-    about: Ask usage questions and get help from the community.
+    url: "https://t.me/mubashardev?text=Hi%2C%20I%20need%20help%20with%20Coursera%20DL."
+    about: Ask usage questions or request support on Telegram.
