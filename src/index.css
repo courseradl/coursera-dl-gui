@@ -1,0 +1,307 @@
+/* ─────────────────────────────────────────────────────────
+   Coursera DL — Global Styles
+   Typography: Google Sans Flex (sans) + Google Sans Code (mono)
+   Theme: Studio-inspired, OKLCH-based
+ ───────────────────────────────────────────────────────── */
+
+/* Tailwind CSS v4 */
+@import "tailwindcss";
+
+/* tw-animate-css */
+@import "tw-animate-css";
+
+/* ── Fonts ──────────────────────────────────────────────── */
+@import "@fontsource/source-sans-3/400.css";
+@import "@fontsource/source-sans-3/600.css";
+@import "@fontsource/source-sans-3/700.css";
+
+@import "@fontsource/google-sans-flex/400.css";
+@import "@fontsource/google-sans-flex/500.css";
+@import "@fontsource/google-sans-flex/600.css";
+@import "@fontsource/google-sans-flex/700.css";
+
+@import "@fontsource/google-sans-code/400.css";
+@import "@fontsource/google-sans-code/500.css";
+
+/* ── shadcn/ui dark variant ─────────────────────────────── */
+@custom-variant dark (&:is(.dark *));
+
+/* ── Light theme (Authentic Coursera.org Brand Identity) ─── */
+:root {
+  --radius: 6px;
+
+  /* Layout Canvas: #F5F7FA Light Ice Blue */
+  --background:          #F5F7FA;
+  /* Deep Charcoal Typography: #1F1F1F */
+  --foreground:          #1F1F1F;
+
+  /* Card Surface: #FFFFFF Pure White */
+  --card:                #FFFFFF;
+  --card-foreground:     #1F1F1F;
+  --popover:             #FFFFFF;
+  --popover-foreground:  #1F1F1F;
+
+  /* Coursera Brand Blue: #0056D2 */
+  --primary:             #0056D2;
+  --primary-foreground:  #FFFFFF;
+
+  /* Secondary & Muted */
+  --secondary:           #EBEEF2;
+  --secondary-foreground: #1F1F1F;
+  --muted:               #F0F3F7;
+  /* Muted Slate: #5F5F5F */
+  --muted-foreground:    #5F5F5F;
+
+  /* Soft Accent & Pink Milestone */
+  --accent:              #E8F0FE;
+  --accent-foreground:   #0056D2;
+
+  --destructive:         #D9383A;
+  --destructive-foreground: #FFFFFF;
+
+  /* Structural Guidelines: #D9D9D9 Border Slate */
+  --border:              #D9D9D9;
+  --input:               #D9D9D9;
+  --ring:                rgba(0, 86, 210, 0.35);
+
+  --chart-1:             #0056D2;
+  --chart-2:             #271066;
+  --chart-3:             #00875A;
+  --chart-4:             #CE8483;
+  --chart-5:             #DE350B;
+
+  /* Sidebar styling */
+  --sidebar:                   #FFFFFF;
+  --sidebar-foreground:        #1F1F1F;
+  --sidebar-primary:           #0056D2;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:            #F0F4FC;
+  --sidebar-accent-foreground: #0056D2;
+  --sidebar-border:            #E3E8EE;
+  --sidebar-ring:              rgba(0, 86, 210, 0.35);
+}
+
+/* ── Dark theme (Midnight Violet & Deep Slate Identity) ─── */
+.dark {
+  --background:          #0B0B14;
+  --foreground:          #F2F4F8;
+
+  --card:                #12131F;
+  --card-foreground:     #F2F4F8;
+  --popover:             #12131F;
+  --popover-foreground:  #F2F4F8;
+
+  --primary:             #2E7BFA;
+  --primary-foreground:  #FFFFFF;
+
+  --secondary:           #1C1D2D;
+  --secondary-foreground: #E0E4EC;
+  --muted:               #161726;
+  --muted-foreground:    #98A2B3;
+
+  --accent:              #1E223D;
+  --accent-foreground:   #93B8FF;
+
+  --destructive:         #E5484D;
+  --destructive-foreground: #FFFFFF;
+
+  --border:              rgba(255, 255, 255, 0.12);
+  --input:               rgba(255, 255, 255, 0.14);
+  --ring:                rgba(46, 123, 250, 0.4);
+
+  --chart-1:             #2E7BFA;
+  --chart-2:             #7B61FF;
+  --chart-3:             #22C55E;
+  --chart-4:             #F472B6;
+  --chart-5:             #F59E0B;
+
+  --sidebar:                   #0E0F18;
+  --sidebar-foreground:        #F2F4F8;
+  --sidebar-primary:           #2E7BFA;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:            #1A1C2C;
+  --sidebar-accent-foreground: #93B8FF;
+  --sidebar-border:            rgba(255, 255, 255, 0.08);
+  --sidebar-ring:              rgba(46, 123, 250, 0.4);
+}
+
+/* ── Tailwind v4 theme mapping ──────────────────────────── */
+@theme inline {
+  --font-sans: "Source Sans 3", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Google Sans Code", ui-monospace, "Cascadia Code", monospace;
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+  --color-chart-1:                var(--chart-1);
+  --color-chart-2:                var(--chart-2);
+  --color-chart-3:                var(--chart-3);
+  --color-chart-4:                var(--chart-4);
+  --color-chart-5:                var(--chart-5);
+  --color-sidebar:                var(--sidebar);
+  --color-sidebar-foreground:     var(--sidebar-foreground);
+  --color-sidebar-primary:        var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:         var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border:         var(--sidebar-border);
+  --color-sidebar-ring:           var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable],
+  code,
+  pre,
+  [data-selectable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+    opacity: 0.5;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+    opacity: 1;
+  }
+}
+
+/* ── Shimmer Animation for Skeletons ──────────────────────── */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-effect::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 30%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.4) 70%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 1.6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.dark .shimmer-effect::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 30%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 70%,
+    transparent 100%
+  );
+}
+
+/* ── Splash Screen Logo Animation ────────────────────────── */
+@keyframes splash-pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(0, 86, 210, 0.35));
+  }
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 28px rgba(0, 86, 210, 0.75));
+  }
+}
+
+@keyframes splash-ring-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+
+.animate-splash-logo {
+  animation: splash-pulse-glow 2.2s infinite ease-in-out;
+}
+
+.animate-splash-ring {
+  animation: splash-ring-pulse 2.2s infinite ease-in-out;
+}
+
+
+

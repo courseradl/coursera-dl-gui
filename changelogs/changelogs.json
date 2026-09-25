@@ -1,0 +1,26 @@
+[
+  {
+    "version": "1.0.0",
+    "date": "2026-09-25",
+    "features": [
+      "Initial Release of Coursera DL desktop application (Tauri v2 + Rust + React 19 + TypeScript)",
+      "High-performance native downloading engine with concurrent workers and memory-safe streaming",
+      "Full support for multi-course specializations and individual course material archiving",
+      "Batch specialization enrollment with automatic course progress discovery",
+      "Course Slug downloader for direct on-demand course archiving",
+      "Comprehensive asset preservation: HD videos (720p/1080p), lecture notes, reading assets, subtitles (.vtt/.srt), and course PDFs",
+      "Local Netscape/Cookie-Editor cookie-based authentication with zero external credential leakage",
+      "Authenticated user profile enrichment (name, email, profile photo, and initial monograms)",
+      "Human-mimicking smart request throttling with randomized pacing intervals between module downloads",
+      "Stale-While-Revalidate caching architecture for enrolled course catalog and module hierarchy",
+      "Live download progress tracking, pause/resume capabilities, and file system explorer integrations",
+      "Modern studio-inspired UI with authentic Coursera color palette, light/dark themes, and animated splash logo",
+      "Cross-platform support for Windows, macOS (Universal / Apple Silicon & Intel), and Linux"
+    ],
+    "fixes": [
+      "Specialization directory depth resolution and nested folder organization",
+      "Transparent rounded squircle app icons for desktop bundles and window managers",
+      "Full multi-user session isolation with clean logout and cookie purge"
+    ]
+  }
+]

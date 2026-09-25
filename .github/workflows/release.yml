@@ -1,0 +1,197 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  prepare:
+    if: "endsWith(github.event.head_commit.message, '--release')"
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.verify_version.outputs.new_version }}
+      release_body: ${{ steps.verify_version.outputs.release_body }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.SUBMODULE_PAT != '' && secrets.SUBMODULE_PAT || secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Verify Release Version
+        id: verify_version
+        run: |
+          set -o pipefail
+          ./scripts/verify_release.sh > verification_output.log 2>&1
+          EXIT_CODE=$?
+          cat verification_output.log
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "Version verification failed!"
+            exit 1
+          fi
+
+          NEW_VERSION=$(tail -n 1 verification_output.log)
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          # Generate release body
+          {
+            echo "release_body<<EOF"
+            
+            HAS_FEATURES=$(jq '.[0].features | length' changelogs/changelogs.json)
+            if [ "$HAS_FEATURES" -gt 0 ]; then
+              echo "### Features"
+              jq -r '.[0].features[]' changelogs/changelogs.json | sed 's/^/- /'
+              echo ""
+            fi
+
+            HAS_FIXES=$(jq '.[0].fixes | length' changelogs/changelogs.json)
+            if [ "$HAS_FIXES" -gt 0 ]; then
+              echo "### Fixes"
+              jq -r '.[0].fixes[]' changelogs/changelogs.json | sed 's/^/- /'
+              echo ""
+            fi
+
+            echo "---"
+            echo "### Manual Downloads"
+            echo ""
+            echo "| Platform | Architecture | File |"
+            echo "| :--- | :--- | :--- |"
+            echo "| **macOS** | Apple Silicon (M1/M2/M3/M4) | \`Coursera-DL-$NEW_VERSION-apple_silicon.dmg\` |"
+            echo "| **macOS** | Intel | \`Coursera-DL-$NEW_VERSION-intel_chip.dmg\` |"
+            echo "| **Windows** | x64 | \`Coursera-DL-$NEW_VERSION-windows_x64.exe\` |"
+            echo "| **Linux** | x86_64 | \`Coursera-DL-$NEW_VERSION-linux_x64.{deb,AppImage}\` |"
+            echo "| **Linux** | ARM64 | \`Coursera-DL-$NEW_VERSION-linux_arm64.{deb,AppImage}\` |"
+            echo ""
+            echo "---"
+            echo ""
+            echo "### macOS Note"
+            echo "*You may need to run this command in your terminal after first open if getting any gatekeeper prompt:*"
+            echo ""
+            echo "\`xattr -cr /Applications/Coursera\\ DL.app\`"
+            echo ""
+            echo "### Windows Note"
+            echo "*Windows SmartScreen may show a warning — click **\"More info\"** → **\"Run anyway\"** to proceed.*"
+            echo ""
+            echo "*PowerShell command to unblock the installer (if needed):*"
+            echo "\`Unblock-File -Path \"\$HOME\\Downloads\\Coursera-DL-$NEW_VERSION-windows_x64.exe\"\`"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Bump Version and Commit
+        run: |
+          NEW_VERSION=${{ steps.verify_version.outputs.new_version }}
+
+          # Bump manifests
+          jq ".version = \"$NEW_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
+          jq ".version = \"$NEW_VERSION\"" src-tauri/tauri.conf.json > src-tauri/tauri.conf.json.tmp && mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json
+
+          # Update Cargo.toml version
+          sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" src-tauri/Cargo.toml
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
+
+          if ! git diff --cached --exit-code; then
+            git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+            git push
+          else
+            echo "Version already bumped, skipping commit."
+          fi
+
+  build:
+    needs: prepare
+    runs-on: ${{ matrix.platform }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            arch_name: apple_silicon
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            arch_name: intel_chip
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            arch_name: windows_x64
+          - platform: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            arch_name: linux_x64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          submodules: recursive
+          token: ${{ secrets.SUBMODULE_PAT != '' && secrets.SUBMODULE_PAT || secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build Tauri App
+        run: bun tauri build --target ${{ matrix.target }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Rename and Prepare Assets
+        shell: bash
+        run: |
+          VERSION=${{ needs.prepare.outputs.new_version }}
+          ARCH=${{ matrix.arch_name }}
+          mkdir -p dist/artifacts
+          
+          # Find and rename bundles using exact names
+          find src-tauri/target/${{ matrix.target }}/release/bundle -name "*.dmg" -exec cp {} "dist/artifacts/Coursera-DL-$VERSION-$ARCH.dmg" \;
+          find src-tauri/target/${{ matrix.target }}/release/bundle -name "*.exe" -exec cp {} "dist/artifacts/Coursera-DL-$VERSION-$ARCH.exe" \;
+          find src-tauri/target/${{ matrix.target }}/release/bundle -name "*.deb" -exec cp {} "dist/artifacts/Coursera-DL-$VERSION-$ARCH.deb" \;
+          find src-tauri/target/${{ matrix.target }}/release/bundle -name "*.AppImage" -exec cp {} "dist/artifacts/Coursera-DL-$VERSION-$ARCH.AppImage" \;
+          find src-tauri/target/${{ matrix.target }}/release/bundle -name "*.rpm" -exec cp {} "dist/artifacts/Coursera-DL-$VERSION-$ARCH.rpm" \;
+          
+          # Include .sig files for the updater if they exist
+          find src-tauri/target/${{ matrix.target }}/release/bundle -name "*.sig" -exec cp {} "dist/artifacts/" \;
+          find src-tauri/target/${{ matrix.target }}/release/bundle -name "latest.json" -exec cp {} "dist/artifacts/" \;
+
+      - name: Build and Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.prepare.outputs.new_version }}
+          name: "Coursera DL v${{ needs.prepare.outputs.new_version }}"
+          body: ${{ needs.prepare.outputs.release_body }}
+          draft: false
+          prerelease: false
+          files: dist/artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

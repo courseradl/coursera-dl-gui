@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Default capabilities for Coursera DL main window","local":true,"windows":["main","*"],"permissions":["core:default","core:event:default","core:event:allow-listen","core:event:allow-emit","dialog:default","fs:default","opener:default","process:default","shell:default"]}}
