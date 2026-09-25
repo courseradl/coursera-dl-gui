@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Primary Meta Tags -->
+  <title>Coursera DL — High-Performance Desktop Course Archiver & Backup Tool</title>
+  <meta name="title" content="Coursera DL — High-Performance Desktop Course Archiver & Backup Tool">
+  <meta name="description" content="A modern, lightweight cross-platform desktop application built with Tauri v2, Rust, and React. Archive your enrolled Coursera courses, HD videos, lecture notes, and materials for offline personal study with complete local privacy.">
+  <meta name="keywords" content="coursera downloader, coursera dl, coursera-dl-gui, tauri coursera, course archiver, download coursera videos, offline learning, coursera backup, rust downloader">
+  <meta name="author" content="Coursera DL Community">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://courseradl.github.io/coursera-dl-gui/">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://courseradl.github.io/coursera-dl-gui/">
+  <meta property="og:title" content="Coursera DL — High-Performance Desktop Course Archiver">
+  <meta property="og:description" content="Cross-platform desktop application powered by Rust & Tauri for personal, offline archiving of your enrolled Coursera courses.">
+  <meta property="og:image" content="https://courseradl.github.io/coursera-dl-gui/assets/logo.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://courseradl.github.io/coursera-dl-gui/">
+  <meta property="twitter:title" content="Coursera DL — High-Performance Desktop Course Archiver">
+  <meta property="twitter:description" content="Cross-platform desktop application powered by Rust & Tauri for personal, offline archiving of your enrolled Coursera courses.">
+  <meta property="twitter:image" content="https://courseradl.github.io/coursera-dl-gui/assets/logo.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+
+  <!-- Fonts (Matches app typography: Source Sans 3 + Google Sans Code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Authentic Coursera DL light theme tokens */
+      --background: #F5F7FA;
+      --foreground: #1F1F1F;
+      --card: #FFFFFF;
+      --card-foreground: #1F1F1F;
+      --primary: #0056D2;
+      --primary-hover: #00419E;
+      --primary-foreground: #FFFFFF;
+      --secondary: #EBEEF2;
+      --secondary-foreground: #1F1F1F;
+      --muted: #F0F3F7;
+      --muted-foreground: #5F5F5F;
+      --accent: #E8F0FE;
+      --accent-foreground: #0056D2;
+      --destructive: #D9383A;
+      --border: #E3E8EE;
+      --border-subtle: #EBEFF5;
+      --ring: rgba(0, 86, 210, 0.25);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    code, pre, kbd {
+      font-family: 'Fira Code', ui-monospace, monospace;
+    }
+
+    /* Standard Micro-Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 86, 210, 0.2); }
+      50% { box-shadow: 0 0 0 10px rgba(0, 86, 210, 0); }
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-float {
+      animation: floatSlow 4s ease-in-out infinite;
+    }
+
+    /* Layout Containers */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--foreground);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .brand img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+    }
+    .brand:hover img {
+      transform: scale(1.05);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted-foreground);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      color: var(--foreground);
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .btn-github:hover {
+      background: var(--muted);
+      border-color: #CBD5E1;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 70px 0 50px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      border: 1px solid rgba(0, 86, 210, 0.2);
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+    .hero-title {
+      font-size: clamp(2.3rem, 4.5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.18;
+      letter-spacing: -0.03em;
+      margin-bottom: 18px;
+      color: #111827;
+    }
+    .hero-title span {
+      color: var(--primary);
+    }
+    .hero-subtitle {
+      max-width: 660px;
+      margin: 0 auto 34px;
+      color: var(--muted-foreground);
+      font-size: 1.12rem;
+      line-height: 1.6;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--primary);
+      color: #FFFFFF;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(0, 86, 210, 0.3);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      color: var(--foreground);
+      padding: 12px 22px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: var(--muted);
+      border-color: #CBD5E1;
+      transform: translateY(-1px);
+    }
+
+    /* Live Desktop Window Simulation (Exact App Theme Replica) */
+    .app-window-wrapper {
+      margin-top: 45px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+      text-align: left;
+    }
+    .window-titlebar {
+      height: 40px;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-close { background: #FF5F56; }
+    .dot-min { background: #FFBD2E; }
+    .dot-max { background: #27C93F; }
+    .window-title {
+      margin-left: 12px;
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      font-family: 'Fira Code', monospace;
+      font-weight: 500;
+    }
+    .window-body {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 380px;
+      background: var(--background);
+    }
+    .window-sidebar {
+      background: #FFFFFF;
+      border-right: 1px solid var(--border);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted-foreground);
+    }
+    .menu-item.active {
+      background: var(--accent);
+      color: var(--primary);
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background: var(--secondary);
+      border: 1px solid var(--border);
+    }
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(0, 86, 210, 0.15);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+    .window-content {
+      padding: 24px;
+      background: var(--background);
+    }
+    .content-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ECFDF5;
+      border: 1px solid #A7F3D0;
+      color: #059669;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+    .course-cards-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .mock-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .mock-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .card-banner {
+      height: 75px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+    .banner-ai { background: linear-gradient(135deg, #0056D2, #271066); }
+    .banner-cyber { background: linear-gradient(135deg, #00875A, #0056D2); }
+    .mock-card-body {
+      padding: 12px;
+    }
+    .mock-card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 4px;
+    }
+    .mock-card-sub {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      margin-bottom: 10px;
+    }
+    .mock-card-btn {
+      width: 100%;
+      padding: 6px;
+      background: var(--accent);
+      color: var(--primary);
+      border: none;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Section Styles */
+    section {
+      padding: 70px 0;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 620px;
+      margin: 0 auto 46px;
+    }
+    .section-title {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      color: #111827;
+    }
+    .section-desc {
+      color: var(--muted-foreground);
+      font-size: 1.05rem;
+    }
+
+    /* Feature Cards */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 22px;
+    }
+    .feature-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .feature-card:hover {
+      border-color: #CBD5E1;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-3px);
+    }
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .feature-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #111827;
+    }
+    .feature-desc {
+      color: var(--muted-foreground);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    /* Step by step Flow */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+    }
+    .step-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 18px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+    }
+    .step-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      color: var(--muted-foreground);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    /* Downloads Table */
+    .table-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.92rem;
+    }
+    th, td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: var(--muted);
+      color: var(--muted-foreground);
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-family: 'Fira Code', monospace;
+      background: var(--secondary);
+      color: var(--foreground);
+      font-weight: 600;
+    }
+    .table-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+      transition: color 0.15s ease;
+    }
+    .table-link:hover {
+      text-decoration: underline;
+      color: var(--primary-hover);
+    }
+
+    /* Terminal Window */
+    .terminal-box {
+      background: #111827;
+      border-radius: var(--radius);
+      border: 1px solid #1F2937;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .term-header {
+      background: #1F2937;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .term-body {
+      padding: 22px;
+      color: #E5E7EB;
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+    .term-prompt { color: #60A5FA; margin-right: 10px; user-select: none; }
+    .term-comment { color: #6B7280; font-style: italic; }
+
+    /* Disclaimer Box */
+    .disclaimer-card {
+      background: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      border-radius: var(--radius);
+      padding: 26px;
+      margin-top: 55px;
+    }
+    .disclaimer-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #DC2626;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+    }
+    .disclaimer-body {
+      color: #4B5563;
+      font-size: 0.86rem;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      background: #FFFFFF;
+      border-top: 1px solid var(--border);
+      padding: 36px 0;
+      margin-top: 60px;
+      text-align: center;
+      color: var(--muted-foreground);
+      font-size: 0.88rem;
+    }
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .window-body {
+        grid-template-columns: 1fr;
+      }
+      .window-sidebar {
+        display: none;
+      }
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <div class="container">
+      <div class="nav-wrapper">
+        <a href="#" class="brand" aria-label="Coursera DL Home">
+          <img src="assets/logo.png" alt="Coursera DL Logo" width="36" height="36">
+          <span>Coursera DL</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#flow">How It Works</a></li>
+            <li><a href="#downloads">Downloads</a></li>
+            <li><a href="#development">Setup</a></li>
+            <li><a href="#disclaimer">Legal</a></li>
+          </ul>
+        </nav>
+        <a href="https://github.com/courseradl/coursera-dl-gui" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+          GitHub Repository
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero animate-fade-in">
+      <div class="container">
+        <div class="hero-badge">
+          ⚡ Native Rust Core & Tauri v2 Desktop Engine
+        </div>
+        <h1 class="hero-title">
+          Personal Coursera Archiving, <br>
+          <span>Modernized for Desktop.</span>
+        </h1>
+        <p class="hero-subtitle">
+          A high-performance, lightweight personal archiving utility replacing legacy CLI scripts. Preserve courses, specializations, video segments, and reading materials on Windows, macOS, and Linux.
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/courseradl/coursera-dl-gui/releases/latest" class="btn-primary" target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Download v1.0.0 Release
+          </a>
+          <a href="#development" class="btn-secondary">
+            Terminal Setup Guide
+          </a>
+        </div>
+
+        <!-- Live Desktop Window Simulation -->
+        <div class="app-window-wrapper">
+          <div class="window-titlebar">
+            <div class="dot dot-close"></div>
+            <div class="dot dot-min"></div>
+            <div class="dot dot-max"></div>
+            <span class="window-title">Coursera DL — Personal Archiver</span>
+          </div>
+          <div class="window-body">
+            <!-- Sidebar Replica -->
+            <div class="window-sidebar">
+              <div class="sidebar-menu">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom: 14px; padding: 4px;">
+                  <img src="assets/logo.png" style="width:24px; height:24px; border-radius:6px;" alt="Icon">
+                  <span style="font-weight:700; font-size: 0.88rem; color: var(--foreground);">Coursera DL</span>
+                </div>
+                <div class="menu-item active">🎓 My Courses</div>
+                <div class="menu-item">📥 Course Slug DL</div>
+                <div class="menu-item">📁 Active Downloads</div>
+                <div class="menu-item">⚙️ Settings</div>
+              </div>
+              <div class="user-pill">
+                <div class="user-avatar">TK</div>
+                <div style="min-width:0; overflow:hidden;">
+                  <p style="font-size:0.75rem; font-weight:700; color:var(--foreground); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Tester Khan</p>
+                  <p style="font-size:0.68rem; color:var(--muted-foreground); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Authenticated</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Content Area Replica -->
+            <div class="window-content">
+              <div class="content-header">
+                <div>
+                  <h3 style="font-size: 1rem; font-weight: 700; color: #111827;">My Enrolled Courses</h3>
+                  <p style="font-size: 0.78rem; color: var(--muted-foreground);">Live catalog synchronized via Stale-While-Revalidate caching</p>
+                </div>
+                <div class="status-badge">
+                  <span class="pulse-dot"></span>
+                  Active Session
+                </div>
+              </div>
+              
+              <div class="course-cards-row">
+                <div class="mock-card">
+                  <div class="card-banner banner-ai">📘</div>
+                  <div class="mock-card-body">
+                    <p class="mock-card-title">Deep Learning Specialization</p>
+                    <p class="mock-card-sub">DeepLearning.AI • 5 Courses</p>
+                    <button class="mock-card-btn">Download Archive</button>
+                  </div>
+                </div>
+                <div class="mock-card">
+                  <div class="card-banner banner-cyber">🔒</div>
+                  <div class="mock-card-body">
+                    <p class="mock-card-title">Google Cybersecurity</p>
+                    <p class="mock-card-sub">Google Career Certificates • 8 Courses</p>
+                    <button class="mock-card-btn">Download Archive</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- System Architecture & Features -->
+    <section id="features">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">System Architecture & Capabilities</h2>
+          <p class="section-desc">Engineered for native performance, minimal memory footprint, and full user data isolation.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="card-icon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h3 class="feature-title">Modern Desktop UI</h3>
+            <p class="feature-desc">A clean, human-readable graphical user interface built with a custom color palette inspired by digital education templates, complete with theme switching and animated micro-interactions.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="card-icon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <h3 class="feature-title">Rust-Powered Core</h3>
+            <p class="feature-desc">Engineered with Tauri v2 and native Rust for minimal RAM footprint, instantaneous startup, asynchronous streaming, and rock-solid memory safety.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="card-icon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+            <h3 class="feature-title">Secure Cookie Authentication</h3>
+            <p class="feature-desc">Processes data entirely on your local workstation using account session cookies. No credentials or tokens are ever transmitted to external servers.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="card-icon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 class="feature-title">Human-Mimicking Smart Throttling</h3>
+            <p class="feature-desc">Configured with automated random delays and pacing adjustments between module downloads to prevent request grouping and protect your session.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="card-icon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h3 class="feature-title">Comprehensive Content Archiving</h3>
+            <p class="feature-desc">Safely archives high-resolution video segments (720p/1080p), lecture slides, course PDFs, and multilingual subtitles to your customizable local target folder.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="card-icon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </div>
+            <h3 class="feature-title">Batch Specialization Enrollment</h3>
+            <p class="feature-desc">Automatically discovers all courses belonging to a specialization and performs one-click batch enrollment and batch downloading across nested syllabus modules.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step-by-Step Flow -->
+    <section id="flow" style="background: #FFFFFF; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Step-by-Step Usage Flow</h2>
+          <p class="section-desc">Pragmatic, sequential walkthrough for non-technical users.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <h3 class="step-title">Log in to Coursera</h3>
+            <p class="step-desc">Open your standard browser and sign in to your authorized Coursera account.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <h3 class="step-title">Copy Cookies</h3>
+            <p class="step-desc">Open Developer Tools (<kbd>F12</kbd>) or use Cookie-Editor to export your session cookies.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <h3 class="step-title">Launch App</h3>
+            <p class="step-desc">Start the Coursera DL desktop application on your system.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <h3 class="step-title">Authenticate</h3>
+            <p class="step-desc">Paste your session cookies securely into the local authentication card.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">5</div>
+            <h3 class="step-title">Start Archiving</h3>
+            <p class="step-desc">Select active course modules, choose an output folder, and click <strong>"Start Archiving"</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platform Downloads Matrix -->
+    <section id="downloads">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Cross-Platform Binaries</h2>
+          <p class="section-desc">Download signed native installers and standalone desktop bundles.</p>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Target Platform</th>
+                <th>Processor Architecture</th>
+                <th>Package Format</th>
+                <th>Release Asset</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>macOS</strong></td>
+                <td>Apple Silicon (M1 / M2 / M3 / M4)</td>
+                <td><span class="tag">.dmg</span></td>
+                <td><a href="https://github.com/courseradl/coursera-dl-gui/releases/latest" target="_blank" rel="noopener noreferrer" class="table-link">Download Installer →</a></td>
+              </tr>
+              <tr>
+                <td><strong>macOS</strong></td>
+                <td>Intel Chip (x86_64)</td>
+                <td><span class="tag">.dmg</span></td>
+                <td><a href="https://github.com/courseradl/coursera-dl-gui/releases/latest" target="_blank" rel="noopener noreferrer" class="table-link">Download Installer →</a></td>
+              </tr>
+              <tr>
+                <td><strong>Windows</strong></td>
+                <td>x64 Architecture</td>
+                <td><span class="tag">.exe</span></td>
+                <td><a href="https://github.com/courseradl/coursera-dl-gui/releases/latest" target="_blank" rel="noopener noreferrer" class="table-link">Download Installer →</a></td>
+              </tr>
+              <tr>
+                <td><strong>Linux</strong></td>
+                <td>x86_64 / ARM64</td>
+                <td><span class="tag">.AppImage / .deb</span></td>
+                <td><a href="https://github.com/courseradl/coursera-dl-gui/releases/latest" target="_blank" rel="noopener noreferrer" class="table-link">Download Binary →</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Development & Environment Setup -->
+    <section id="development" style="background: #FFFFFF; border-top: 1px solid var(--border);">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Development & Local Setup</h2>
+          <p class="section-desc">Direct instructions for building and running from source.</p>
+        </div>
+
+        <div class="terminal-box">
+          <div class="term-header">
+            <div class="dot dot-close"></div>
+            <div class="dot dot-min"></div>
+            <div class="dot dot-max"></div>
+            <span style="font-size: 0.72rem; color: #9CA3AF; margin-left: 8px; font-family: 'Fira Code', monospace;">bash — courseradl/coursera-dl-gui</span>
+          </div>
+          <div class="term-body">
+            <div><span class="term-comment"># 1. Clone the repository</span></div>
+            <div><span class="term-prompt">$</span>git clone https://github.com/courseradl/coursera-dl-gui.git</div>
+            <div><span class="term-prompt">$</span>cd coursera-dl-gui</div>
+            <br>
+            <div><span class="term-comment"># 2. Install frontend dependencies</span></div>
+            <div><span class="term-prompt">$</span>pnpm install  <span class="term-comment"># or npm install / bun install</span></div>
+            <br>
+            <div><span class="term-comment"># 3. Launch in local development mode</span></div>
+            <div><span class="term-prompt">$</span>pnpm tauri dev  <span class="term-comment"># or npm run tauri dev</span></div>
+            <br>
+            <div><span class="term-comment"># 4. Compile optimized release bundle</span></div>
+            <div><span class="term-prompt">$</span>pnpm tauri build</div>
+          </div>
+        </div>
+
+        <!-- Compliance & Legal Disclaimer -->
+        <div class="disclaimer-card" id="disclaimer">
+          <div class="disclaimer-title">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <span>Legal Disclaimer & Warranty Limitation</span>
+          </div>
+          <p class="disclaimer-body">
+            This software is an unofficial, community-driven personal archival tool. It is strictly intended for personal, educational, offline use and the preservation of learning materials that the end-user already holds legitimate, active, and authorized access to view. The developer does not condone, encourage, or facilitate digital piracy, copyright circumvention, mass redistribution, or commercialization of data. Use of automated tools may violate the target platform's terms of service.
+          </p>
+          <p class="disclaimer-body" style="margin-top: 8px;">
+            This application is licensed under the <strong>GNU General Public License v3.0 (GPL-3.0)</strong>. As specified in Sections 15 and 16 of the GPL-3.0, this software is provided 'as is' without warranty of any kind, either expressed or implied. The author and contributors assume absolutely no liability or responsibility for any platform-side account restrictions, access bans, token revocations, data loss, or legal actions resulting from the use or misuse of this codebase.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p><strong>Coursera DL</strong> is an open-source personal utility licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">GNU GPL v3.0</a>.</p>
+      <p style="margin-top: 4px; font-size: 0.8rem; color: #9CA3AF;">Maintained by the community under organization <a href="https://github.com/courseradl" target="_blank" rel="noopener noreferrer">courseradl</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>
