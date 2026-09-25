@@ -1,5 +1,25 @@
 [
   {
+    "version": "1.0.1",
+    "date": "2026-09-26",
+    "features": [
+      "Native Login with Coursera flow with a secure in-app authentication window and automatic session handoff",
+      "Automatic capture of Coursera HttpOnly CAUTH and CSRF session cookies from the native WebView cookie store",
+      "Dual login experience with direct Coursera authentication and an expandable cookie-based fallback",
+      "Broader manual cookie import support for Netscape cookies.txt, Cookie-Editor JSON, and raw Cookie header formats",
+      "Refined authentication interface with the official Coursera mark, direct login flow, verification feedback, and clear cancellation controls",
+      "Sign-out confirmation dialog with complete local session and WebView storage cleanup",
+      "New SEO-optimized product website in the docs directory with responsive app-themed branding and release links"
+    ],
+    "fixes": [
+      "Reliable interception of HttpOnly CAUTH cookies that are unavailable through document.cookie",
+      "Correct Coursera parent-domain cookie matching for .coursera.org sessions opened on www.coursera.org",
+      "Prevented premature login completion when only a CSRF cookie or dashboard redirect was detected",
+      "WebView login cancellation now resolves immediately instead of remaining active until timeout",
+      "Improved parsing of semicolon-separated cookies and Cookie-Editor exports"
+    ]
+  },
+  {
     "version": "1.0.0",
     "date": "2026-09-25",
     "features": [
