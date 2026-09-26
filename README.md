@@ -14,7 +14,7 @@
 
 - **Modern Desktop UI**: A clean, human-readable graphical user interface (GUI) built with a custom color scheme inspired by digital education templates.
 - **Rust-Powered Core**: Engineered with Tauri and Rust for native memory efficiency and a minimal system footprint.
-- **Secure Cookie Authentication**: Processes data entirely on the user's local machine using account session cookies. No hardcoded or transmitted remote credentials.
+- **Direct Login & Flexible Authentication**: Sign in directly via a secure built-in Coursera window without manual cookie extraction, or optionally import Netscape `cookies.txt` / session cookies.
 - **Human-Mimicking Smart Throttling**: Configured with automated random delays and pacing adjustments between module downloads to avoid request grouping.
 - **Comprehensive Content Archiving**: Safely archives video segments, lecture slides, and course PDFs to a customizable local target folder.
 
@@ -22,13 +22,26 @@
 
 ## Step-by-Step Usage Flow
 
-Follow this sequential guide to back up your course content:
+### Method 1: Direct Login (Recommended — No Cookie Extraction Required)
 
-1. **Step 1**: Open your standard web browser and log into your legitimate Coursera account.
-2. **Step 2**: Open the browser's developer tools (`Inspect Element`), navigate to the network/application storage tab, and securely copy your account session cookies (`CAUTH` / session tokens).
-3. **Step 3**: Launch the **Coursera DL** desktop application on your system.
-4. **Step 4**: Paste your session cookies securely into the app's local authentication profile card.
-5. **Step 5**: Select your active, enrolled course modules from the layout pane, choose a local output storage directory, and click **"Start Archiving"**.
+1. **Launch Coursera DL** on your desktop.
+2. Click **"Login with Coursera"**.
+3. A secure built-in login window will open. Enter your Coursera credentials or sign in using your preferred authentication provider (Google, Apple, SSO, etc.).
+4. Once authenticated, the app automatically captures the session, closes the login window, and synchronizes your enrolled courses.
+
+### Method 2: Manual Cookie Login (Alternative)
+
+If you prefer using an existing browser session or need offline cookie authentication:
+1. Log in to your Coursera account in your web browser (Chrome, Edge, Brave, etc.).
+2. Export your session cookies in Netscape format using an extension such as *Cookie-Editor* or *Get cookies.txt LOCALLY* (or locate your `CAUTH` token).
+3. In **Coursera DL**, expand **"Login using Coursera cookies"**.
+4. Paste the cookies into the text area and click **"Login with cookies"**.
+
+### Archiving Your Courses
+
+1. Select your desired enrolled courses and modules from the course library.
+2. Choose your preferred local output storage folder.
+3. Click **"Start Archiving"** to download high-quality videos, slides, and learning materials.
 
 ---
 
