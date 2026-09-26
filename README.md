@@ -32,6 +32,22 @@ Follow this sequential guide to back up your course content:
 
 ---
 
+## Quick Installation
+
+Install or update **Coursera DL** instantly using the automated command-line installer:
+
+### macOS / Linux
+```bash
+curl -fsSL https://courseradl.github.io/install.sh | bash
+```
+
+### Windows (PowerShell)
+```powershell
+irm https://courseradl.github.io/install.ps1 | iex
+```
+
+---
+
 ## Development & Environment Setup
 
 ### Prerequisites
